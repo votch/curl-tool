@@ -19,15 +19,19 @@ public class CurlEntryPoint {
     // curl tool args
     enum Argument {
         ARG_HELP("--help"),
+        ARG_BODY("-b"),
         ARG_CURL("-c"),
-        ARG_URL("-u"),
-        ARG_LOG("-l"),
-        ARG_COUNT("-n"),
         ARG_DEL("-d"),
-        ARG_HTTP_METHOD("-m"),
-        ARG_TIMEOUT("-t"),
+        ARG_FORM_ARG("-f"),
         ARG_HEADER("-h"),
-        ARG_SILENT("-s");
+        ARG_LOG("-l"),
+        ARG_HTTP_METHOD("-m"),
+        ARG_COUNT("-n"),
+        ARG_TIMEOUT("-t"),
+        ARG_SILENT("-s"),
+        ARG_URL("-u"),
+        ARG_VERBOSE("-v")
+        ;
 
         private final String str;
 
@@ -59,6 +63,9 @@ public class CurlEntryPoint {
             .add(ARG_TIMEOUT.str + " - timeout to wait for remote host response in milliseconds (default - " + CurlCmd.DEFAULT_TIMEOUT + ")")
             .add(ARG_SILENT.str + " - boolean silent mode (default - " + CurlCmd.DEFAULT_SILENT + "). If true, hides curl progress info")
             .add(ARG_HEADER.str + " - header for the request (default - empty), could be repeated several times")
+            .add(ARG_FORM_ARG.str + " - form argument to be send in the requests body. cUrl equivalent: '-F, --form'")
+            .add(ARG_BODY.str + " - raw body data, ex json. cUrl equivalent: '-d, --data'")
+            .add(ARG_VERBOSE.str + " - verbose - print all debug info to curl log. cUrl equivalent: '-v, --verbose'")
             .toString();
 
     // form help message with an additional message as a first line
@@ -121,6 +128,15 @@ public class CurlEntryPoint {
                 break;
             case ARG_HEADER:
                 curlBuilder.addHeader(getArg(args, i));
+                break;
+            case ARG_FORM_ARG:
+                curlBuilder.addFormArg(getArg(args, i));
+                break;
+            case ARG_BODY:
+                curlBuilder.addBodyArg(getArg(args, i));
+                break;
+            case ARG_VERBOSE:
+                curlBuilder.setVerbose(Boolean.parseBoolean(getArg(args, i)));
                 break;
         }
         return i;

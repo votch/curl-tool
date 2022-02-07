@@ -33,6 +33,9 @@ public class CurlCmd {
 
     // this is a log template that we will write for every curl request an then process to culc a statistics
     private static final String CURL_OUT_TEMPLATE = "\n" +
+            "exitcode=%{exitcode}\n" +
+            "json=%{json}\n" +
+            "stdout=%{stdout}\n" +
             "time_pretransfer=%{" + TIME_PRETRANSFER + "}\n" +
             "time_starttransfer=%{" + TIME_STARTTRANSFER + "}\n" +
             "time_total=%{" + TIME_TOTAL + "}\n";
@@ -55,9 +58,12 @@ public class CurlCmd {
     private String method = null;
     private long timeout = DEFAULT_TIMEOUT;
     private boolean silent = DEFAULT_SILENT;
-    private Set<String> headers = new HashSet<>();
+    private final Set<String> headers = new HashSet<>();
+    private final Set<String> formArgs = new HashSet<>();
+    private final Set<String> bodyArgs = new HashSet<>();
 
-    private List<File> logs = new LinkedList<>();
+    private final List<File> logs = new LinkedList<>();
+    private boolean verbose = false;
 
     protected CurlCmd() {
     }
@@ -68,8 +74,11 @@ public class CurlCmd {
                 .add("-w").add(CURL_OUT_TEMPLATE)
                 .add("-k");
         if (silent) argsBuilder.accept("-s");
+        if (verbose) argsBuilder.add("-v");
         if (method != null) argsBuilder.add("-X").accept(method);
-        headers.forEach(h -> argsBuilder.add("-H").accept("\"" + h + "\""));
+        headers.forEach(h -> argsBuilder.add("-H").accept(h));
+        formArgs.forEach(a -> argsBuilder.add("-F").accept("'" + a + "'"));
+        bodyArgs.forEach(a -> argsBuilder.add("-d").accept(a));
         argsBuilder.accept(urlToTest);
 
         return argsBuilder.build().toArray(String[]::new);
@@ -167,7 +176,7 @@ public class CurlCmd {
     // Get property in seconds and convert it to long value in milliseconds
     private static long sToMs(Properties props, String param) {
         String val = props.getProperty(param).replaceAll(",", ".");
-        return (long) (Float.valueOf(val) * 1000);
+        return (long) (Float.parseFloat(val) * 1000);
     }
 
     // print curl-tool settings that is needed to process the request
@@ -197,7 +206,7 @@ public class CurlCmd {
     /**
      * This class is for convenience. It is intended to easily work with statistics measurements.
      */
-    private class Times {
+    private static class Times {
         private final long total;
         private final long calc;
 
@@ -213,7 +222,7 @@ public class CurlCmd {
      */
     public static class Builder {
 
-        private CurlCmd curlCmd = new CurlCmd();
+        private final CurlCmd curlCmd = new CurlCmd();
 
         /**
          * Calls <code>CurlCmd::execute</code> method if CurlCmd "is ready". Otherwise throws <code>RuntimeException</code>.
@@ -285,6 +294,18 @@ public class CurlCmd {
 
         public void addHeader(String header) {
             curlCmd.headers.add(header);
+        }
+
+        public void addFormArg(String arg) {
+            curlCmd.formArgs.add(arg);
+        }
+
+        public void addBodyArg(String arg) {
+            curlCmd.bodyArgs.add(arg);
+        }
+
+        public void setVerbose(boolean verbose) {
+            curlCmd.verbose = verbose;
         }
     }
 }
