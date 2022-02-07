@@ -10,12 +10,14 @@ Examples of usage:
 java -jar curl-tool-1.0.jar -c "PATH_TO_CURL/curl" -u "https://google.com"
 
 As a result you'll see
-"First:
+```
+First:
  - total time - 1422
  - calculation time - 797
  Then:
  - total time - 1340,33
- - calculation time - 774,22"
+ - calculation time - 774,22
+ ```
 
 "First" - first request info.
 "Then" - average statistic of all next requests.
